@@ -9,6 +9,8 @@ const PORT = process.env.PORT || 5000;
 
 const server = http.createServer(app);
 
+console.log("ENV CHECK 👉", process.env.MONGO_URI);
+
 export const io = new Server(server, {
   cors: {
     origin: process.env.CLIENT_URL,

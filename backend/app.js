@@ -2,13 +2,14 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
+import dotenv from "dotenv";
+dotenv.config(); // 
 
 import authRoutes from "./routes/auth.routes.js";
 import gigRoutes from "./routes/gig.routes.js";
 import bidRoutes from "./routes/bid.routes.js";
 import hireRoutes from "./routes/hire.routes.js"
 
-console.log("ENV CHECK 👉", process.env.MONGO_URI);
 
 const app = express();
 
