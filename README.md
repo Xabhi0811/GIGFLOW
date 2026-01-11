@@ -64,5 +64,84 @@ Any user can act as a Client or a Freelancer.
 
 ### 1. Clone Repository
 ```bash
-git clone <https://github.com/Xabhi0811/GIGFLOW.git>
+git clone <https://github.com/Xabhi0811/GIGFLOW.git >
 cd gigflow
+
+
+
+
+2. Backend Setup
+cd backend
+npm install
+cp .env.example .env
+npm run dev
+
+3. Frontend Setup
+cd frontend
+npm install
+npm run dev
+
+
+📡 Socket.io Setup
+
+
+Socket automatically registers user on dashboard load
+
+
+Hiring triggers real-time notification
+
+
+
+📦 Deployment
+
+
+Backend: Render / Railway
+
+
+Frontend: Vercel / Netlify
+
+
+MongoDB: Atlas
+
+
+
+📹 Demo
+A short Loom video demonstrating:
+
+
+Posting a gig
+
+
+Submitting bids
+
+
+Hiring a freelancer
+
+
+Real-time notification
+
+
+
+👨‍💻 Author
+Built as part of a Full Stack Internship Assignment.
+
+---
+
+# ✅ MODULE 8 STATUS: COMPLETE
+
+### Your project is now:
+✔ Fully documented  
+✔ Easy to run  
+✔ Easy to evaluate  
+✔ Internship-ready  
+
+---
+
+# 🏁 FINAL OPTIONAL MODULE
+### 🔹 MODULE 9: **Interview Talking Points + Common Questions**
+(Helps you explain this project confidently in interviews)
+
+If you want that, say **“Continue with Module 9”**.
+
+Otherwise —  
+🎉 **You now have a complete, professional, full-stack MERN project.**
