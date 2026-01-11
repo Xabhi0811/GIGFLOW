@@ -1,11 +1,16 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Home from "./pages/Home";
-import PostGig from "./pages/PostGig";
-import Dashboard from "./pages/Dashboard";
-import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+import FreelancerHome from "./pages/freelancer/FreelancerHome";
+import MyApplications from "./pages/freelancer/MyApplications";
+import FreelancerDashboard from "./pages/freelancer/FreelancerDashboard";
+
+import PostGig from "./pages/client/PostGig";
+import ClientDashboard from "./pages/client/ClientDashboard";
+
 import { useAuth } from "./context/AuthContext";
 
 export default function App() {
@@ -16,13 +21,19 @@ export default function App() {
     <BrowserRouter>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Navigate to={user ? "/home" : "/login"} />} />
+        <Route path="/" element={<Navigate to={user ? "/freelancer/home" : "/login"} />} />
+
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-        <Route path="/post-gig" element={<ProtectedRoute><PostGig /></ProtectedRoute>} />
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        {/* Freelancer */}
+        <Route path="/freelancer/home" element={<ProtectedRoute><FreelancerHome /></ProtectedRoute>} />
+        <Route path="/freelancer/applications" element={<ProtectedRoute><MyApplications /></ProtectedRoute>} />
+        <Route path="/freelancer/dashboard" element={<ProtectedRoute><FreelancerDashboard /></ProtectedRoute>} />
+
+        {/* Client */}
+        <Route path="/client/post-gig" element={<ProtectedRoute><PostGig /></ProtectedRoute>} />
+        <Route path="/client/dashboard" element={<ProtectedRoute><ClientDashboard /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );
