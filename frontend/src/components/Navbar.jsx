@@ -17,10 +17,20 @@ export default function Navbar() {
   return (
     <nav className="flex justify-between px-6 py-3 border-b">
       <h2 className="font-bold">GigFlow</h2>
+
       <div className="flex gap-4">
-        <Link to="/home">Home</Link>
-        <Link to="/post-gig">Post Gig</Link>
-        <Link to="/dashboard">Dashboard</Link>
+        {user.userType === "client" ? (
+          <>
+            <Link to="/client/dashboard">Dashboard</Link>
+            <Link to="/client/post-gig">Post Gig</Link>
+          </>
+        ) : (
+          <>
+            <Link to="/freelancer/home">Browse Gigs</Link>
+            <Link to="/freelancer/applications">My Applications</Link>
+            <Link to="/freelancer/dashboard">Dashboard</Link>
+          </>
+        )}
         <button onClick={logout}>Logout</button>
       </div>
     </nav>

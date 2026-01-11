@@ -4,12 +4,12 @@ import Register from "./pages/Register";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-import FreelancerHome from "./pages/freelancer/FreelancerHome";
-import MyApplications from "./pages/freelancer/MyApplications";
-import FreelancerDashboard from "./pages/freelancer/FreelancerDashboard";
+import FreelancerHome from "./freelancer/FreelancerHome";
+import MyApplications from "./freelancer/MyApplications";
+import FreelancerDashboard from "./freelancer/FreelancerDashboard";
 
-import PostGig from "./pages/client/PostGig";
-import ClientDashboard from "./pages/client/ClientDashboard";
+import PostGig from "./pages/PostGig";
+import ClientDashboard from "./pages/Dashboard";
 
 import { useAuth } from "./context/AuthContext";
 

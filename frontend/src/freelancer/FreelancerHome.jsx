@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
-import api from "../../api/axios";
-import GigCard from "../../components/GigCard";
+import api from "../api/axios";
+import GigCard from "../components/GigCard";
 import { useNavigate } from "react-router-dom";
 
 export default function FreelancerHome() {
   const [gigs, setGigs] = useState([]);
-  const [filteredGigs, setFilteredGigs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
-  const [budgetFilter, setBudgetFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("newest");
-  const [skills, setSkills] = useState([]);
+  const [category, setCategory] = useState("all");
+  const [filteredGigs, setFilteredGigs] = useState([]);
+  const [stats, setStats] = useState({
+    totalGigs: 0,
+    avgBudget: 0,
+    activeClients: 0,
+    responseRate: 95
+  });
   
   const navigate = useNavigate();
 
@@ -19,14 +22,21 @@ export default function FreelancerHome() {
     setIsLoading(true);
     api.get("/gigs")
       .then(res => {
-        setGigs(res.data);
-        setFilteredGigs(res.data);
+        const gigsData = res.data;
+        setGigs(gigsData);
+        setFilteredGigs(gigsData);
         setIsLoading(false);
         
-        // Extract unique skills from gigs for filter
-        const allSkills = res.data.flatMap(gig => gig.skills || []);
-        const uniqueSkills = [...new Set(allSkills)].slice(0, 10);
-        setSkills(uniqueSkills);
+        // Calculate stats
+        if (gigsData.length > 0) {
+          const totalBudget = gigsData.reduce((sum, gig) => sum + (gig.budget || 0), 0);
+          setStats({
+            totalGigs: gigsData.length,
+            avgBudget: Math.round(totalBudget / gigsData.length),
+            activeClients: new Set(gigsData.map(gig => gig.clientId)).size,
+            responseRate: 95
+          });
+        }
       })
       .catch(() => setIsLoading(false));
   }, []);
@@ -36,82 +46,71 @@ export default function FreelancerHome() {
     
     // Apply search filter
     if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
       result = result.filter(gig => 
-        gig.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        gig.description.toLowerCase().includes(searchTerm.toLowerCase())
+        gig.title?.toLowerCase().includes(searchLower) ||
+        gig.description?.toLowerCase().includes(searchLower) ||
+        gig.skills?.some(skill => skill.toLowerCase().includes(searchLower))
       );
     }
     
     // Apply category filter
-    if (categoryFilter !== "all") {
+    if (category !== "all") {
       result = result.filter(gig => 
-        gig.category?.toLowerCase() === categoryFilter.toLowerCase()
+        gig.category?.toLowerCase() === category.toLowerCase()
       );
     }
     
-    // Apply budget filter
-    if (budgetFilter === "low") {
-      result = result.filter(gig => gig.budget < 5000);
-    } else if (budgetFilter === "medium") {
-      result = result.filter(gig => gig.budget >= 5000 && gig.budget <= 20000);
-    } else if (budgetFilter === "high") {
-      result = result.filter(gig => gig.budget > 20000);
-    }
-    
-    // Apply sorting
-    if (sortBy === "newest") {
-      result = [...result].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    } else if (sortBy === "budget-high") {
-      result = [...result].sort((a, b) => b.budget - a.budget);
-    } else if (sortBy === "budget-low") {
-      result = [...result].sort((a, b) => a.budget - b.budget);
-    }
-    
     setFilteredGigs(result);
-  }, [gigs, searchTerm, categoryFilter, budgetFilter, sortBy]);
+  }, [gigs, searchTerm, category]);
 
   const categories = [
-    { id: "all", name: "All Categories" },
-    { id: "web", name: "Web Development" },
-    { id: "mobile", name: "Mobile App" },
-    { id: "design", name: "UI/UX Design" },
-    { id: "writing", name: "Content Writing" },
-    { id: "marketing", name: "Digital Marketing" },
-    { id: "video", name: "Video Editing" }
+    { id: "all", name: "All Categories", icon: "🌐", count: gigs.length },
+    { id: "web", name: "Web Development", icon: "💻", count: gigs.filter(g => g.category === "web").length },
+    { id: "mobile", name: "Mobile Apps", icon: "📱", count: gigs.filter(g => g.category === "mobile").length },
+    { id: "design", name: "UI/UX Design", icon: "🎨", count: gigs.filter(g => g.category === "design").length },
+    { id: "writing", name: "Content Writing", icon: "✍️", count: gigs.filter(g => g.category === "writing").length },
+    { id: "marketing", name: "Marketing", icon: "📈", count: gigs.filter(g => g.category === "marketing").length }
   ];
 
-  const handleSkillClick = (skill) => {
-    setSearchTerm(skill);
+  const popularSkills = [
+    "React", "Node.js", "JavaScript", "UI/UX", "Python", "Mobile", "WordPress", "SEO", "Graphic Design", "Copywriting"
+  ];
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(amount || 0);
   };
 
   const clearFilters = () => {
     setSearchTerm("");
-    setCategoryFilter("all");
-    setBudgetFilter("all");
-    setSortBy("newest");
+    setCategory("all");
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white">
+      <div className="bg-gradient-to-r from-indigo-600 to-purple-700 text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
           <div className="text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              Find Your Next
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-400">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+              Find Your Perfect
+              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-orange-400 mt-2">
                 Freelance Project
               </span>
             </h1>
-            <p className="text-xl md:text-2xl text-purple-100 mb-10 max-w-3xl mx-auto">
-              Browse thousands of opportunities and grow your freelance career
+            <p className="text-xl text-indigo-100 mb-10 max-w-3xl mx-auto">
+              Browse thousands of opportunities and grow your freelance career with amazing projects
             </p>
             
             {/* Search Bar */}
-            <div className="max-w-2xl mx-auto mb-12">
+            <div className="max-w-2xl mx-auto">
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
@@ -119,8 +118,8 @@ export default function FreelancerHome() {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search gigs by title, skills, or keywords..."
-                  className="w-full pl-12 pr-4 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent text-lg placeholder-white/70 text-white"
+                  placeholder="Search gigs by skills, title, or keywords..."
+                  className="w-full pl-12 pr-4 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl focus:outline-none focus:ring-2 focus:ring-white/50 focus:border-transparent text-lg placeholder-white/70"
                 />
                 {searchTerm && (
                   <button 
@@ -132,24 +131,65 @@ export default function FreelancerHome() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto">
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-2">{gigs.length}+</div>
-                <div className="text-purple-200">Active Gigs</div>
+      {/* Stats Section */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+            <div className="flex items-center">
+              <div className="p-3 rounded-xl bg-indigo-100 mr-4">
+                <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-2">24h</div>
-                <div className="text-purple-200">Avg. Response</div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{stats.totalGigs}</p>
+                <p className="text-sm text-gray-600">Active Gigs</p>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-2">₹2.5Cr+</div>
-                <div className="text-purple-200">Paid to Freelancers</div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+            <div className="flex items-center">
+              <div className="p-3 rounded-xl bg-purple-100 mr-4">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
               </div>
-              <div className="text-center">
-                <div className="text-3xl font-bold mb-2">4.8★</div>
-                <div className="text-purple-200">Client Rating</div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.avgBudget)}</p>
+                <p className="text-sm text-gray-600">Avg. Budget</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+            <div className="flex items-center">
+              <div className="p-3 rounded-xl bg-green-100 mr-4">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{stats.activeClients}</p>
+                <p className="text-sm text-gray-600">Active Clients</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+            <div className="flex items-center">
+              <div className="p-3 rounded-xl bg-yellow-100 mr-4">
+                <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{stats.responseRate}%</p>
+                <p className="text-sm text-gray-600">Response Rate</p>
               </div>
             </div>
           </div>
@@ -159,41 +199,19 @@ export default function FreelancerHome() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header & Filters */}
-        <div className="mb-8">
+        <div className="mb-10">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8">
             <div>
               <h2 className="text-3xl font-bold text-gray-900">
-                Available <span className="text-purple-600">Gigs</span>
+                Available <span className="text-indigo-600">Gigs</span>
               </h2>
               <p className="text-gray-600 mt-2">
                 Discover projects that match your skills and expertise
               </p>
             </div>
             
-            {/* Sort & Filter Controls */}
-            <div className="flex flex-wrap gap-3 mt-4 md:mt-0">
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="newest">Newest First</option>
-                <option value="budget-high">Budget: High to Low</option>
-                <option value="budget-low">Budget: Low to High</option>
-              </select>
-              
-              <select
-                value={budgetFilter}
-                onChange={(e) => setBudgetFilter(e.target.value)}
-                className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="all">All Budgets</option>
-                <option value="low">Under ₹5,000</option>
-                <option value="medium">₹5,000 - ₹20,000</option>
-                <option value="high">Over ₹20,000</option>
-              </select>
-              
-              {(searchTerm || categoryFilter !== "all" || budgetFilter !== "all") && (
+            <div className="flex items-center space-x-4 mt-4 md:mt-0">
+              {(searchTerm || category !== "all") && (
                 <button
                   onClick={clearFilters}
                   className="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
@@ -201,66 +219,52 @@ export default function FreelancerHome() {
                   Clear Filters
                 </button>
               )}
+              <div className="text-sm text-gray-600">
+                Showing {filteredGigs.length} of {gigs.length} gigs
+              </div>
             </div>
           </div>
-          
+
           {/* Category Filter */}
-          <div className="mb-6">
-            <div className="flex flex-wrap gap-2">
-              {categories.map((category) => (
+          <div className="mb-8">
+            <h3 className="text-sm font-medium text-gray-700 mb-4">Browse by Category</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
+              {categories.map((cat) => (
                 <button
-                  key={category.id}
-                  onClick={() => setCategoryFilter(category.id)}
-                  className={`px-4 py-2 rounded-full font-medium transition-colors ${
-                    categoryFilter === category.id
-                      ? 'bg-purple-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  key={cat.id}
+                  onClick={() => setCategory(cat.id)}
+                  className={`p-4 rounded-xl border-2 transition-all duration-300 ${
+                    category === cat.id
+                      ? 'border-indigo-500 bg-indigo-50 text-indigo-700'
+                      : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50 text-gray-700'
                   }`}
                 >
-                  {category.name}
+                  <div className="text-2xl mb-2">{cat.icon}</div>
+                  <div className="font-medium mb-1">{cat.name}</div>
+                  <div className="text-xs text-gray-500">{cat.count} gigs</div>
                 </button>
               ))}
             </div>
           </div>
-          
-          {/* Skills Filter */}
-          {skills.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Popular Skills:</h3>
-              <div className="flex flex-wrap gap-2">
-                {skills.map((skill, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleSkillClick(skill)}
-                    className={`px-3 py-1 rounded-lg text-sm transition-colors ${
-                      searchTerm === skill
-                        ? 'bg-purple-600 text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {skill}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
-          {/* Results Info */}
-          <div className="flex items-center justify-between mb-6">
-            <p className="text-gray-600">
-              Showing <span className="font-bold text-gray-900">{filteredGigs.length}</span> of <span className="font-bold text-gray-900">{gigs.length}</span> gigs
-              {searchTerm && ` for "${searchTerm}"`}
-              {categoryFilter !== "all" && ` in ${categories.find(c => c.id === categoryFilter)?.name}`}
-            </p>
-            
-            {filteredGigs.length > 0 && (
-              <div className="flex items-center text-sm text-gray-500">
-                <svg className="w-4 h-4 mr-1 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                Real-time gigs updated
-              </div>
-            )}
+          {/* Popular Skills */}
+          <div className="mb-8">
+            <h3 className="text-sm font-medium text-gray-700 mb-4">Popular Skills</h3>
+            <div className="flex flex-wrap gap-2">
+              {popularSkills.map((skill, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSearchTerm(skill)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                    searchTerm === skill
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {skill}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -286,110 +290,64 @@ export default function FreelancerHome() {
             </div>
             <h3 className="text-2xl font-semibold text-gray-700 mb-2">No gigs found</h3>
             <p className="text-gray-500 max-w-md mx-auto mb-8">
-              {searchTerm 
-                ? `We couldn't find any gigs matching "${searchTerm}". Try different keywords or clear filters.`
-                : "No gigs are currently available. Check back soon!"}
+              {searchTerm || category !== "all"
+                ? `No gigs match your current filters. Try adjusting your search or browse all categories.`
+                : "No gigs are currently available. Check back soon for new opportunities!"}
             </p>
-            {(searchTerm || categoryFilter !== "all" || budgetFilter !== "all") && (
+            {(searchTerm || category !== "all") && (
               <button 
                 onClick={clearFilters}
-                className="px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition duration-200"
+                className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 transition duration-200"
               >
-                Clear All Filters
+                View All Gigs
               </button>
             )}
           </div>
         ) : (
-          <>
-            {/* Gig Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-              {filteredGigs.map(gig => (
-                <div key={gig._id} className="group">
-                  <GigCard gig={gig} />
-                </div>
-              ))}
-            </div>
-
-            {/* Pagination */}
-            <div className="flex justify-center">
-              <nav className="flex items-center space-x-2">
-                <button className="px-4 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition duration-200">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                <button className="px-4 py-2 bg-purple-600 text-white rounded-lg">1</button>
-                <button className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition duration-200">2</button>
-                <button className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition duration-200">3</button>
-                <span className="px-2 text-gray-400">...</span>
-                <button className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition duration-200">10</button>
-                <button className="px-4 py-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition duration-200">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </nav>
-            </div>
-          </>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {filteredGigs.map(gig => (
+              <div key={gig._id} className="group transform transition-transform duration-300 hover:-translate-y-1">
+                <GigCard gig={gig} />
+              </div>
+            ))}
+          </div>
         )}
 
         {/* CTA Section */}
-        <div className="mt-16 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl shadow-xl overflow-hidden">
+        <div className="mt-16 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl shadow-xl overflow-hidden">
           <div className="px-8 py-12 md:px-12 md:py-16 text-center">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-              Ready to Land Your Dream Gig?
+              Ready to Land Your Dream Project?
             </h2>
-            <p className="text-purple-100 text-lg mb-8 max-w-2xl mx-auto">
-              Create a standout profile and increase your chances of getting hired
+            <p className="text-indigo-100 text-lg mb-8 max-w-2xl mx-auto">
+              Create a standout profile and increase your chances of getting hired by top clients
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button 
                 onClick={() => navigate("/profile")}
-                className="px-8 py-3 bg-white text-purple-600 font-bold rounded-lg hover:bg-gray-100 transition duration-200 transform hover:-translate-y-0.5"
+                className="px-8 py-3 bg-white text-indigo-600 font-bold rounded-lg hover:bg-gray-100 transition duration-200 transform hover:-translate-y-0.5"
               >
-                Update Your Profile
+                Optimize Your Profile
               </button>
               <button className="px-8 py-3 bg-transparent border-2 border-white text-white font-bold rounded-lg hover:bg-white/10 transition duration-200">
-                View Bidding Tips
+                View Success Tips
               </button>
             </div>
-          </div>
-        </div>
-
-        {/* Featured Categories */}
-        <div className="mt-16">
-          <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">Top Earning Categories</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {[
-              { name: "Web Dev", icon: "💻", avgPay: "₹45K", gigs: 156 },
-              { name: "Mobile Apps", icon: "📱", avgPay: "₹52K", gigs: 98 },
-              { name: "UI/UX Design", icon: "🎨", avgPay: "₹38K", gigs: 124 },
-              { name: "Content Writing", icon: "✍️", avgPay: "₹28K", gigs: 203 },
-              { name: "Digital Marketing", icon: "📈", avgPay: "₹41K", gigs: 87 },
-              { name: "Video Editing", icon: "🎥", avgPay: "₹35K", gigs: 76 }
-            ].map((cat, idx) => (
-              <div key={idx} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 text-center hover:shadow-lg hover:border-purple-300 transition-all duration-200 cursor-pointer">
-                <div className="text-3xl mb-2">{cat.icon}</div>
-                <div className="font-bold text-gray-900 mb-1">{cat.name}</div>
-                <div className="text-sm text-purple-600 font-semibold mb-1">{cat.avgPay}/project</div>
-                <div className="text-xs text-gray-500">{cat.gigs} active gigs</div>
-              </div>
-            ))}
           </div>
         </div>
 
         {/* Success Stories */}
         <div className="mt-16">
-          <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">Freelancer Success Stories</h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">Freelancers Like You Are Succeeding</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
-              { name: "Priya Sharma", role: "React Developer", earnings: "₹12.5L", quote: "Found consistent work through this platform" },
-              { name: "Rahul Verma", role: "UI/UX Designer", earnings: "₹8.2L", quote: "My freelance career took off here" },
-              { name: "Anjali Patel", role: "Content Writer", earnings: "₹6.8L", quote: "Best platform for serious freelancers" }
+              { name: "Priya Sharma", role: "React Developer", earnings: "₹12.5L", story: "Started with small gigs, now earns ₹1L+ monthly" },
+              { name: "Rahul Verma", role: "UI/UX Designer", earnings: "₹8.2L", story: "Built portfolio with 5-star reviews from clients" },
+              { name: "Anjali Patel", role: "Content Writer", earnings: "₹6.8L", story: "Consistently gets hired for long-term projects" }
             ].map((story, idx) => (
               <div key={idx} className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
                 <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg mr-4">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg mr-4">
                     {story.name.charAt(0)}
                   </div>
                   <div>
@@ -397,7 +355,7 @@ export default function FreelancerHome() {
                     <p className="text-sm text-gray-600">{story.role}</p>
                   </div>
                 </div>
-                <p className="text-gray-700 italic mb-4">"{story.quote}"</p>
+                <p className="text-gray-700 mb-4">{story.story}</p>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-500">Total Earnings</p>
@@ -413,6 +371,26 @@ export default function FreelancerHome() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Newsletter */}
+        <div className="mt-16">
+          <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-2xl border border-gray-200 p-8 text-center">
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Never Miss an Opportunity</h3>
+            <p className="text-gray-600 mb-6 max-w-md mx-auto">
+              Get notified when new gigs matching your skills are posted
+            </p>
+            <div className="max-w-md mx-auto flex">
+              <input
+                type="email"
+                placeholder="Enter your email"
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <button className="px-6 py-3 bg-indigo-600 text-white font-medium rounded-r-lg hover:bg-indigo-700 transition-colors">
+                Subscribe
+              </button>
+            </div>
           </div>
         </div>
       </div>
