@@ -23,3 +23,8 @@ export const login = async (req, res) => {
   generateToken(res, user._id);
   res.json({ user });
 };
+
+export const getMe = async (req, res) => {
+  res.json(req.user);
+};
+
