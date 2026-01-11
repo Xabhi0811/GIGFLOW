@@ -41,3 +41,16 @@ export const createGig = async (req, res) => {
 
   res.status(201).json(gig);
 };
+
+export const getMyGigs = async (req, res) => {
+  const gigs = await Gig.find({ ownerId: req.user._id })
+    .populate({
+      path: "bids",
+      populate: {
+        path: "freelancerId",
+        select: "name email",
+      },
+    });
+
+  res.json(gigs);
+};

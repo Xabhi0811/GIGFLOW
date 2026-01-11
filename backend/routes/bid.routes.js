@@ -3,7 +3,7 @@ import {
   createBid,
   getBidsForGig,
 } from "../controllers/bid.controller.js";
-import protect from "../middlewares/auth.middleware.js";
+import {protect} from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
