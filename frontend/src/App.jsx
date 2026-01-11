@@ -21,7 +21,20 @@ export default function App() {
     <BrowserRouter>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Navigate to={user ? "/freelancer/home" : "/login"} />} />
+        <Route
+  path="/"
+  element={
+    user ? (
+      user.userType === "client" ? (
+        <Navigate to="/client/dashboard" />
+      ) : (
+        <Navigate to="/freelancer/home" />
+      )
+    ) : (
+      <Navigate to="/login" />
+    )
+  }
+/>
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
