@@ -64,5 +64,5 @@ Any user can act as a Client or a Freelancer.
 
 ### 1. Clone Repository
 ```bash
-git clone <repo_url>
+git clone <https://github.com/Xabhi0811/GIGFLOW.git>
 cd gigflow
