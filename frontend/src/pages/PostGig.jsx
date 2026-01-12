@@ -55,7 +55,7 @@ export default function PostGig() {
         deadline,
         type: gigType
       });
-      navigate("/dashboard");
+      navigate("/client/dashboard");
     } catch (error) {
       setErrors({ 
         submit: error.response?.data?.message || "Failed to post gig. Please try again." 
@@ -110,7 +110,7 @@ export default function PostGig() {
         <div className="mb-10">
           <div className="flex items-center mb-4">
             <button 
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/client/dashboard")}
               className="mr-4 p-2 hover:bg-gray-200 rounded-lg transition-colors"
             >
               <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -443,6 +443,7 @@ export default function PostGig() {
               <button
                 onClick={submit}
                 disabled={isLoading}
+                
                 className="px-10 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5 disabled:opacity-70 disabled:cursor-not-allowed flex items-center"
               >
                 {isLoading ? (
@@ -460,7 +461,7 @@ export default function PostGig() {
                     </svg>
                     Post Gig & Find Talent
                   </>
-                )}
+                  )}
               </button>
             </div>
           </div>
