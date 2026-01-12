@@ -1,30 +1,41 @@
-import { useState } from "react";
-import BidModal from "./BidModal";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../api/axios";
+import { useAuth } from "../context/AuthContext";
 
-export default function GigCard({ gig }) {
-  const [showBidModal, setShowBidModal] = useState(false);
+export default function Navbar() {
+  const { user, setUser } = useAuth();
+  const navigate = useNavigate();
+
+  const logout = async () => {
+    await api.post("/auth/logout");
+    setUser(null);
+    navigate("/login");
+  };
+
+  if (!user) return null;
 
   return (
-    <>
-      <div className="border p-4 mb-3 rounded">
-        <h3 className="font-semibold">{gig.title}</h3>
-        <p>{gig.description}</p>
-        <p>Budget: ₹{gig.budget}</p>
+    <nav className="flex justify-between items-center px-6 py-3 border-b bg-white">
+      <h2 className="font-bold text-xl">GigFlow</h2>
 
-        <button
-          className="mt-2"
-          onClick={() => setShowBidModal(true)}
-        >
-          Apply / Bid
+      <div className="flex gap-4 items-center">
+        {user.userType === "client" ? (
+          <>
+            <Link to="/client/dashboard">Dashboard</Link>
+            <Link to="/client/post-gig">Post Gig</Link>
+          </>
+        ) : (
+          <>
+            <Link to="/freelancer/home">Browse Gigs</Link>
+            <Link to="/freelancer/applications">My Applications</Link>
+            <Link to="/freelancer/dashboard">Dashboard</Link>
+          </>
+        )}
+
+        <button onClick={logout} className="px-3 py-1 border rounded">
+          Logout
         </button>
       </div>
-
-      {showBidModal && (
-        <BidModal
-          gig={gig}
-          onClose={() => setShowBidModal(false)}
-        />
-      )}
-    </>
+    </nav>
   );
 }

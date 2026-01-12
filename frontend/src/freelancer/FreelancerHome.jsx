@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 
 
 export default function FreelancerHome() {
+   const { user } = useAuth();
   const [gigs, setGigs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
