@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import BidModal from "./BidModal";
 
 export default function GigCard({ gig }) {
+    if (!gig) return null;
   const { user } = useAuth();
   const [showBidModal, setShowBidModal] = useState(false);
 

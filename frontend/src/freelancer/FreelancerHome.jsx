@@ -321,12 +321,20 @@ export default function FreelancerHome() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {filteredGigs.map(gig => (
-              <div key={gig._id} className="group transform transition-transform duration-300 hover:-translate-y-1">
-                <GigCard gig={gig} />
-              </div>
-            ))}
-          </div>
+  {filteredGigs.map((gig, index) => {
+    if (!gig) return null;
+
+    return (
+      <div
+        key={gig._id || index}
+        className="group transform transition-transform duration-300 hover:-translate-y-1"
+      >
+        <GigCard gig={gig} />
+      </div>
+    );
+  })}
+</div>
+
         )}
 
         {/* CTA Section */}

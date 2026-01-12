@@ -9,6 +9,7 @@ import authRoutes from "./routes/auth.routes.js";
 import gigRoutes from "./routes/gig.routes.js";
 import bidRoutes from "./routes/bid.routes.js";
 import messageRoutes from "./routes/message.routes.js";
+import cookieParser from "cookie-parser";
 
 import { userSocketMap } from "./utils/socketMap.js";
 
@@ -26,6 +27,7 @@ const io = new Server(server, {
   },
 });
 
+app.use(cookieParser());
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
 
