@@ -3,8 +3,13 @@ import { useAuth } from "../context/AuthContext";
 import BidModal from "./BidModal";
 
 export default function GigCard({ gig }) {
-    if (!gig) return null;
   const { user } = useAuth();
+
+  // 🔴 HARD GUARDS — REQUIRED
+  if (!gig || !gig.title || !user) {
+    return null;
+  }
+
   const [showBidModal, setShowBidModal] = useState(false);
 
   const alreadyApplied = gig.bids?.some(
