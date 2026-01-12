@@ -22,31 +22,46 @@ export default function App() {
       <Navbar />
       <Routes>
         <Route
-  path="/"
-  element={
-    user ? (
-      user.userType === "client" ? (
-        <Navigate to="/client/dashboard" />
-      ) : (
-        <Navigate to="/freelancer/home" />
-      )
-    ) : (
-      <Navigate to="/login" />
-    )
-  }
-/>
+          path="/"
+          element={
+            user ? (
+              user.userType === "client" ? (
+                <Navigate to="/client/dashboard" />
+              ) : (
+                <Navigate to="/freelancer/home" />
+              )
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
         {/* Freelancer */}
-        <Route path="/freelancer/home" element={<ProtectedRoute><FreelancerHome /></ProtectedRoute>} />
-        <Route path="/freelancer/applications" element={<ProtectedRoute><MyApplications /></ProtectedRoute>} />
-        <Route path="/freelancer/dashboard" element={<ProtectedRoute><FreelancerDashboard /></ProtectedRoute>} />
+        <Route
+          path="/freelancer/home"
+          element={<ProtectedRoute><FreelancerHome /></ProtectedRoute>}
+        />
+        <Route
+          path="/freelancer/applications"
+          element={<ProtectedRoute><MyApplications /></ProtectedRoute>}
+        />
+        <Route
+          path="/freelancer/dashboard"
+          element={<ProtectedRoute><FreelancerDashboard /></ProtectedRoute>}
+        />
 
         {/* Client */}
-        <Route path="/client/post-gig" element={<ProtectedRoute><PostGig /></ProtectedRoute>} />
-        <Route path="/client/dashboard" element={<ProtectedRoute><ClientDashboard /></ProtectedRoute>} />
+        <Route
+          path="/client/post-gig"
+          element={<ProtectedRoute><PostGig /></ProtectedRoute>}
+        />
+        <Route
+          path="/client/dashboard"
+          element={<ProtectedRoute><ClientDashboard /></ProtectedRoute>}
+        />
       </Routes>
     </BrowserRouter>
   );

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import api from "../api/axios";
 import GigCard from "../components/GigCard";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+
 
 export default function FreelancerHome() {
   const [gigs, setGigs] = useState([]);
@@ -19,27 +21,41 @@ export default function FreelancerHome() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setIsLoading(true);
-    api.get("/gigs")
-      .then(res => {
-        const gigsData = res.data;
-        setGigs(gigsData);
-        setFilteredGigs(gigsData);
-        setIsLoading(false);
-        
-        // Calculate stats
-        if (gigsData.length > 0) {
-          const totalBudget = gigsData.reduce((sum, gig) => sum + (gig.budget || 0), 0);
-          setStats({
-            totalGigs: gigsData.length,
-            avgBudget: Math.round(totalBudget / gigsData.length),
-            activeClients: new Set(gigsData.map(gig => gig.clientId)).size,
-            responseRate: 95
-          });
-        }
-      })
-      .catch(() => setIsLoading(false));
-  }, []);
+  if (!user) return;
+
+  setIsLoading(true);
+
+  api.get("/gigs")
+    .then(res => {
+      // ✅ FILTER OUT FREELANCER'S OWN GIGS
+      const availableGigs = res.data.filter(
+        gig => gig.ownerId !== user._id
+      );
+
+      setGigs(availableGigs);
+      setFilteredGigs(availableGigs);
+      setIsLoading(false);
+
+      // Stats based on visible gigs
+      if (availableGigs.length > 0) {
+        const totalBudget = availableGigs.reduce(
+          (sum, gig) => sum + (gig.budget || 0),
+          0
+        );
+
+        setStats({
+          totalGigs: availableGigs.length,
+          avgBudget: Math.round(totalBudget / availableGigs.length),
+          activeClients: new Set(
+            availableGigs.map(gig => gig.ownerId)
+          ).size,
+          responseRate: 95
+        });
+      }
+    })
+    .catch(() => setIsLoading(false));
+}, [user]);
+
 
   useEffect(() => {
     let result = gigs;
