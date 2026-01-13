@@ -4,6 +4,7 @@ import Gig from "../models/Gig.js";
 import { userSocketMap } from "../utils/socketMap.js";
 import { getIO } from "../utils/socket.js";
 
+
 export const createBid = async (req, res) => {
   const { gigId, price, message } = req.body;
 
@@ -69,3 +70,38 @@ export const hireFreelancer = async (req, res) => {
 
   res.json(bid);
 };
+
+
+export const acceptBid = async (req, res) => {
+  const bid = await Bid.findById(req.params.id);
+  if (!bid) return res.status(404).json({ message: "Bid not found" });
+
+  bid.status = "accepted";
+  await bid.save();
+
+  const notification = await Notification.create({
+    userId: bid.freelancerId,
+    type: "bid_accepted",
+    gigId: bid.gigId,
+    message: "🎉 Your proposal was accepted!",
+  });
+
+  const io = getIO();
+  const socketId = userSocketMap.get(bid.freelancerId.toString());
+  if (socketId) {
+    io.to(socketId).emit("new-notification", notification);
+  }
+
+  res.json({ success: true });
+};
+
+export const rejectBid = async (req, res) => {
+  const bid = await Bid.findById(req.params.id);
+  if (!bid) return res.status(404).json({ message: "Bid not found" });
+
+  bid.status = "rejected";
+  await bid.save();
+
+  res.json({ success: true });
+};
+
