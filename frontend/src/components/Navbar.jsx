@@ -1,13 +1,14 @@
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { socket } from "../socket";
+import { useNotifications } from "../context/NotificationContext";
 
 export default function Navbar() {
   const { user, setUser } = useAuth();
+  const { notifications } = useNotifications();
   const navigate = useNavigate();
-  const [notifications, setNotifications] = useState([]);
 
   const logout = async () => {
     await api.post("/auth/logout");
@@ -15,30 +16,11 @@ export default function Navbar() {
     navigate("/login");
   };
 
-  // 🔔 Fetch notifications (client only)
-  const fetchNotifications = async () => {
-    if (user?.userType === "client") {
-      const res = await api.get("/notifications");
-      setNotifications(res.data.filter(n => !n.isRead));
-    }
-  };
-
+  // 🔌 Register socket ONCE
   useEffect(() => {
-    if (!user) return;
-
-    socket.emit("register", user._id);
-
-    if (user.userType === "client") {
-      fetchNotifications();
-
-      socket.on("new-notification", (notification) => {
-        setNotifications(prev => [notification, ...prev]);
-      });
+    if (user) {
+      socket.emit("register", user._id);
     }
-
-    return () => {
-      socket.off("new-notification");
-    };
   }, [user]);
 
   if (!user) return null;

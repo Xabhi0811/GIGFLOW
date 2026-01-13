@@ -3,30 +3,32 @@ import api from "../api/axios";
 
 export default function BidModal({ gig, onClose }) {
   const [message, setMessage] = useState("");
-  const [price, setPrice] = useState(gig.budget);
+  const [price, setPrice] = useState(gig.budget || "");
   const [loading, setLoading] = useState(false);
 
   const submitBid = async () => {
-    if (!message || !price) {
-      alert("Please fill all fields");
-      return;
-    }
+  if (!message || !price) {
+    alert("Please fill all fields");
+    return;
+  }
 
-    try {
-      setLoading(true);
-      await api.post("/bids", {
-        gigId: gig._id,
-        message,
-        price,
-      });
-      alert("Bid submitted successfully");
-      onClose();
-    } catch (error) {
-      alert(error.response?.data?.message || "Failed to submit bid");
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+
+    await api.post("/bids", {
+      gigId: gig._id,          // ✅ FIX
+      price: Number(price),    // ✅ FIX
+      message: message,        // ✅ FIX
+    });
+
+    alert("Bid submitted successfully");
+    onClose();
+  } catch (error) {
+    alert(error.response?.data?.message || "Failed to submit bid");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">

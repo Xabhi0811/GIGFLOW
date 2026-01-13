@@ -4,10 +4,8 @@ import Gig from "../models/Gig.js";
 import { userSocketMap } from "../utils/socketMap.js";
 import { getIO } from "../utils/socket.js";
 
-
-
 export const createBid = async (req, res) => {
-  const { gigId, amount, proposal } = req.body;
+  const { gigId, price, message } = req.body;
 
   const gig = await Gig.findById(gigId);
   if (!gig) return res.status(404).json({ message: "Gig not found" });
@@ -15,30 +13,28 @@ export const createBid = async (req, res) => {
   const bid = await Bid.create({
     gigId,
     freelancerId: req.user._id,
-    clientId: gig.ownerId,
-    amount,
-    proposal,
+    clientId: gig.clientId,
+    price,
+    message,
   });
 
-  // 🔔 Create notification
   const notification = await Notification.create({
-    userId: gig.ownerId,
+    userId: gig.clientId,
     type: "new_bid",
+    message: `${req.user.name} sent a proposal`,
     gigId,
-    message: `${req.user.name} submitted a proposal for your gig`,
   });
-const io = getIO();
-io.to(clientSocketId).emit("new-notification", notification);
 
-  // 🔥 Real-time socket notification
-  const clientSocketId = userSocketMap.get(gig.ownerId.toString());
+  // 🔥 REAL-TIME PUSH
+  const io = getIO();
+  const clientSocketId = userSocketMap.get(gig.clientId.toString());
+
   if (clientSocketId) {
-    io.to(clientSocketId).emit("newNotification", notification);
+    io.to(clientSocketId).emit("new-notification", notification);
   }
 
   res.status(201).json(bid);
 };
-
 
 export const getMyBids = async (req, res) => {
   let bids;
