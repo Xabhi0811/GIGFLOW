@@ -1,35 +1,37 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import api from "../api/axios";
 import { socket } from "../socket";
-import { useAuth } from "./AuthContext";
 
 const NotificationContext = createContext();
 
 export const NotificationProvider = ({ children }) => {
-  const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
 
+  // fetch from DB
   useEffect(() => {
-    if (!user) return;
-
-    api.get("/notifications").then(res => {
-      setNotifications(res.data.filter(n => !n.isRead));
+    api.get("/notifications").then((res) => {
+      setNotifications(res.data);
     });
+  }, []);
 
-    socket.on("new-notification", notif => {
-      setNotifications(prev => [notif, ...prev]);
+  // realtime socket
+  useEffect(() => {
+    socket.on("new-notification", (notification) => {
+      console.log("SOCKET NOTIFICATION:", notification); // 👈 DEBUG
+      setNotifications((prev) => [notification, ...prev]);
     });
 
     return () => socket.off("new-notification");
-  }, [user]);
+  }, []);
 
-  const markRead = async (id) => {
-    await api.put(`/notifications/${id}/read`);
-    setNotifications(prev => prev.filter(n => n._id !== id));
+  const removeNotification = (id) => {
+    setNotifications((prev) => prev.filter((n) => n._id !== id));
   };
 
   return (
-    <NotificationContext.Provider value={{ notifications, markRead }}>
+    <NotificationContext.Provider
+      value={{ notifications, removeNotification }}
+    >
       {children}
     </NotificationContext.Provider>
   );
