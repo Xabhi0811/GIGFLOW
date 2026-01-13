@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-
 const notificationSchema = new mongoose.Schema(
   {
     userId: {
@@ -9,13 +8,18 @@ const notificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["new_bid", "hire", "message"],
+      enum: ["new_bid", "bid_accepted", "bid_rejected"],
       required: true,
     },
     message: String,
     gigId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Gig",
+    },
+    bidId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Bid",
+      required: true,
     },
     isRead: {
       type: Boolean,
@@ -24,5 +28,6 @@ const notificationSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
 
 export default mongoose.model("Notification", notificationSchema);

@@ -2,23 +2,21 @@ import express from "express";
 import { protect } from "../middlewares/auth.middleware.js";
 import {
   createBid,
-  getBidsForGig,
   getMyBids,
-  hireFreelancer
+  acceptBid,
+  rejectBid,
 } from "../controllers/bid.controller.js";
 
 const router = express.Router();
 
-// Freelancer: place bid
+// Freelancer → create bid
 router.post("/", protect, createBid);
 
-// Client/Freelancer: my bids (THIS FIXES 400)
+// Client + Freelancer → view my bids
 router.get("/my", protect, getMyBids);
 
-// Client: view bids for a gig
-router.get("/:gigId", protect, getBidsForGig);
-
-// Client: hire freelancer
-router.patch("/:id/hire", protect, hireFreelancer);
+// Client → accept / reject bid
+router.patch("/:id/accept", protect, acceptBid);
+router.patch("/:id/reject", protect, rejectBid);
 
 export default router;

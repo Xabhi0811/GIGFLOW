@@ -1,14 +1,17 @@
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { socket } from "../socket";
 import { useNotifications } from "../context/NotificationContext";
+import NotificationDropdown from "./NotificationDropdown";
 
 export default function Navbar() {
   const { user, setUser } = useAuth();
   const { notifications } = useNotifications();
   const navigate = useNavigate();
+
+  const [open, setOpen] = useState(false);
 
   const logout = async () => {
     await api.post("/auth/logout");
@@ -16,7 +19,7 @@ export default function Navbar() {
     navigate("/login");
   };
 
-  // 🔌 Register socket ONCE
+  // 🔌 Register socket once
   useEffect(() => {
     if (user) {
       socket.emit("register", user._id);
@@ -36,12 +39,20 @@ export default function Navbar() {
             <Link to="/client/post-gig">Post Gig</Link>
 
             {/* 🔔 Notification Bell */}
-            <div className="relative cursor-pointer">
-              🔔
+            <div className="relative">
+              <button onClick={() => setOpen(!open)}>🔔</button>
+
               {notifications.length > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-2 rounded-full">
                   {notifications.length}
                 </span>
+              )}
+
+              {open && (
+                <NotificationDropdown
+                  notifications={notifications}
+                  onClose={() => setOpen(false)}
+                />
               )}
             </div>
           </>
