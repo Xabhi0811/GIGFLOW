@@ -39,7 +39,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Freelancer */}
+        
         <Route
           path="/freelancer/home"
           element={<ProtectedRoute><FreelancerHome /></ProtectedRoute>}
@@ -53,7 +53,7 @@ export default function App() {
           element={<ProtectedRoute><FreelancerDashboard /></ProtectedRoute>}
         />
 
-        {/* Client */}
+       
         <Route
           path="/client/post-gig"
           element={<ProtectedRoute><PostGig /></ProtectedRoute>}
