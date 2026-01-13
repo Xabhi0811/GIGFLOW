@@ -4,13 +4,14 @@ import { Server } from "socket.io";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
+import { initSocket } from "./utils/socket.js";
 
 import authRoutes from "./routes/auth.routes.js";
 import gigRoutes from "./routes/gig.routes.js";
 import bidRoutes from "./routes/bid.routes.js";
 import messageRoutes from "./routes/message.routes.js";
 import cookieParser from "cookie-parser";
-
+import notificationRoutes from "./routes/notification.routes.js";
 import { userSocketMap } from "./utils/socketMap.js";
 
 dotenv.config();
@@ -27,6 +28,8 @@ const io = new Server(server, {
   },
 });
 
+initSocket(io);
+
 app.use(cookieParser());
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
@@ -35,6 +38,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/gigs", gigRoutes);
 app.use("/api/bids", bidRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
